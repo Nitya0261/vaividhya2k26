@@ -1,123 +1,139 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import eventsData from "../data/eventsData";
-
+import { EVENT_IMAGES } from "../Events";
 
 function RegisterEvents() {
-  const FREE_EVENT_SLUG = "free-fun-event";
-
-const freeEvent = eventsData.find(
-  event => event.isFreeEvent === true
-);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const preselectedEvent = searchParams.get("event");
+  const userId = localStorage.getItem("currentUserId");
 
-  const [selectedEvents, setSelectedEvents] = useState([]);
-
-  // Auto-select event if coming from EventDetails page
-  useEffect(() => {
-    if (preselectedEvent) {
-      setSelectedEvents([preselectedEvent]);
-    }
-  }, [preselectedEvent]);
-
-  function toggleEvent(slug) {
-  setSelectedEvents(prev => {
-    const isFreeEvent = slug === FREE_EVENT_SLUG;
-
-    const paidEventsCount = prev.filter(
-      e => e !== FREE_EVENT_SLUG
-    ).length;
-
-    // UNSELECT
-    if (prev.includes(slug)) {
-      return prev.filter(e => e !== slug);
-    }
-
-    // FREE EVENT RULE
-    if (isFreeEvent) {
-      if (paidEventsCount < 2) {
-        alert("Select at least 2 paid events to unlock the free event.");
-        return prev;
-      }
-
-      if (prev.includes(FREE_EVENT_SLUG)) {
-        return prev;
-      }
-    }
-
-    // MAX EVENTS RULE (2 paid + 1 free)
-    if (!isFreeEvent && paidEventsCount >= 2) {
-      alert("You can select only 2 paid events.");
-      return prev;
-    }
-
-    return [...prev, slug];
+  const [events, setEvents] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [status, setStatus] = useState({
+    loading: true,
+    error: null,
+    submitting: false
   });
-}
 
+  // ✅ Define technical categories (backend-compatible)
+  const TECHNICAL_CATEGORIES = [
+    "Robotics",
+    "Coding",
+    "Artificial Intelligence",
+    "Cybersecurity",
+    "Physics",
+    "Engineering"
+  ];
 
+  // ================= FETCH EVENTS =================
+  useEffect(() => {
+    if (!userId) {
+      navigate("/register");
+      return;
+    }
 
-  function handleProceed() {
-    const selectedEventObjects = eventsData.filter(event =>
-      selectedEvents.includes(event.slug)
-    );
-// Separate paid events (ignore free)
-const paidEvents = selectedEventObjects.filter(
-  event => event.fee > 0
-);
+    async function fetchEvents() {
+      try {
+        const response = await fetch(
+          "https://vaividhya-backend.onrender.com/api/events/"
+        );
 
-// Check special offer: 3 events of ₹50
-const allThreeAre50 =
-  paidEvents.length === 3 &&
-  paidEvents.every(event => event.fee === 50);
+        if (!response.ok) throw new Error("Fetch failed");
 
-let totalAmount = 0;
+        const apiData = await response.json();
 
-if (allThreeAre50) {
-  totalAmount = 120; // special combo price
-} else {
-  totalAmount = paidEvents.reduce(
-    (sum, event) => sum + event.fee,
-    0
+        // ✅ Merge images safely
+        const enriched = apiData.map(event => ({
+          ...event,
+          image: EVENT_IMAGES[event.event_id] || "/placeholder.png"
+        }));
+
+        setEvents(enriched);
+        setStatus({ loading: false, error: null, submitting: false });
+      } catch (err) {
+        setStatus({
+          loading: false,
+          error: "Could not load events. Please try again.",
+          submitting: false
+        });
+      }
+    }
+
+    fetchEvents();
+  }, [userId, navigate]);
+
+  // ================= FILTER EVENTS =================
+  const technicalEvents = events.filter(
+    e => TECHNICAL_CATEGORIES.includes(e.category)
   );
-}
 
+  const nonTechnicalEvents = events.filter(
+    e => !TECHNICAL_CATEGORIES.includes(e.category)
+  );
 
-    const stored = JSON.parse(localStorage.getItem("registration"));
+  // ================= TOGGLE SELECTION =================
+  function toggleEvent(eventId) {
+    setSelectedIds(prev => {
+      if (prev.includes(eventId)) {
+        return prev.filter(id => id !== eventId);
+      }
 
-    const updatedRegistration = {
-      ...stored,
-      events: selectedEventObjects,
-      totalAmount,
-    };
+      if (prev.length >= 3) {
+        alert("⚠️ You can select a maximum of 3 events.");
+        return prev;
+      }
 
-    localStorage.setItem(
-      "registration",
-      JSON.stringify(updatedRegistration)
+      return [...prev, eventId];
+    });
+  }
+
+  // ================= SUBMIT =================
+  async function handleProceed() {
+    if (selectedIds.length === 0) {
+      alert("Please select at least one event.");
+      return;
+    }
+
+    setStatus(prev => ({ ...prev, submitting: true }));
+
+    try {
+      const response = await fetch(
+        `https://vaividhya-backend.onrender.com/api/registrations/${userId}/events`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_ids: selectedIds })
+        }
+      );
+
+      if (response.ok) {
+        navigate("/register/receipt");
+      } else {
+        const data = await response.json();
+        alert(data.detail || "Submission failed");
+        setStatus(prev => ({ ...prev, submitting: false }));
+      }
+    } catch (err) {
+      alert("Network error");
+      setStatus(prev => ({ ...prev, submitting: false }));
+    }
+  }
+
+  // ================= UI STATES =================
+  if (status.loading)
+    return (
+      <div className="text-center p-20 text-xl font-bold">
+        Loading Events...
+      </div>
     );
 
-    navigate("/register/receipt");
-  }
-const technicalEvents = eventsData.filter(
-  e => e.category === "Technical" && !e.isFreeEvent
-);
-
-const nonTechnicalEvents = eventsData.filter(
-  e => e.category === "Non-Technical" && !e.isFreeEvent
-);
-
-
-
-  // const technicalEvents = eventsData.filter(
-  //   e => e.category === "Technical"
-  // );
-  // const nonTechnicalEvents = eventsData.filter(
-  //   e => e.category === "Non-Technical"
-  // );
+  if (status.error)
+    return (
+      <div className="text-center p-20 text-red-600">
+        {status.error}
+      </div>
+    );
 
   return (
     <>
@@ -127,114 +143,90 @@ const nonTechnicalEvents = eventsData.filter(
         <div className="event-selection-container">
 
           <h1>Select Your Events</h1>
-          <p className="event-limit-info ">
-  🎉 Buy any 2 events & get 1 FREE event (limited entry)
-</p>
 
-<p className="event-limit-info ">
-  
-           🎉 Special Offer: Select any 3 ₹50 events for just ₹120
-</p>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 max-w-2xl mx-auto">
+            <p className="font-bold">🎉 Offers</p>
+            <ul className="list-disc ml-5">
+              <li>Select maximum 3 events</li>
+              <li>₹50 & ₹100 events available</li>
+            </ul>
+          </div>
 
-{/* TECHNICAL EVENTS */}
-<h2 className="event-category-title">Technical Events</h2>
-<div className="event-select-grid">
-  {technicalEvents.map(event => (
-    <label
-      key={event.id}
-      className={`event-select-card ${
-        selectedEvents.includes(event.slug) ? "selected" : ""
-      }`}
-    >
-      <input
-  type="checkbox"
-  checked={selectedEvents.includes(event.slug)}
-  disabled={
-    // disable paid events if already 2 selected
-    (!event.isFreeEvent &&
-      selectedEvents.filter(e => e !== FREE_EVENT_SLUG).length >= 2 &&
-      !selectedEvents.includes(event.slug)) ||
-
-    // disable free event if less than 2 paid selected
-    (event.isFreeEvent &&
-      selectedEvents.filter(e => e !== FREE_EVENT_SLUG).length < 2)
-  }
-  onChange={() => toggleEvent(event.slug)}
-/>
-
-
-
-      <img src={event.poster} alt={event.name} />
-
-      <h3>{event.name}</h3>
-      <p className="event-category">Technical</p>
-      <p className="event-fee">₹{event.fee}</p>
-    </label>
-  ))}
-</div>
-
-{/* NON-TECHNICAL EVENTS */}
-<h2 className="event-category-title">Non-Technical Events</h2>
-<div className="event-select-grid">
-  {nonTechnicalEvents.map(event => (
-    <label
-      key={event.id}
-      className={`event-select-card ${
-        selectedEvents.includes(event.slug) ? "selected" : ""
-      }`}
-    >
-      <input
-        type="checkbox"
-        checked={selectedEvents.includes(event.slug)}
-        onChange={() => toggleEvent(event.slug)}
-      />
-
-      <img src={event.poster} alt={event.name} />
-
-      <h3>{event.name}</h3>
-      <p className="event-category">Non-Technical</p>
-      <p className="event-fee">₹{event.fee}</p>
-    </label>
-  ))}
-</div>
- {/* ✅ FREE EVENT SECTION (INSIDE RETURN) */}
-          {freeEvent && (
-            <div className="free-event-section event-select-card free-event">
-              <h2>🎁 Free Event</h2>
-
-              <label className="event-select-card free-event">
-                <input
-                  type="checkbox"
-                  checked={selectedEvents.includes(freeEvent.slug)}
-                  disabled={
-                    selectedEvents.filter(e => e !== FREE_EVENT_SLUG).length < 2
-                  }
-                  onChange={() => toggleEvent(freeEvent.slug)}
-                />
-                <img src={freeEvent.poster} alt={freeEvent.name} />
-                <h3>{freeEvent.name}</h3>
-                <p className="free-badge">FREE</p>
-              </label>
-            </div>
+          {/* TECHNICAL */}
+          {technicalEvents.length > 0 && (
+            <>
+              <h2 className="event-category-title">Technical Events</h2>
+              <div className="event-select-grid">
+                {technicalEvents.map(event => (
+                  <EventCard
+                    key={event.event_id}
+                    event={event}
+                    selectedIds={selectedIds}
+                    onToggle={toggleEvent}
+                  />
+                ))}
+              </div>
+            </>
           )}
+
+          {/* NON TECHNICAL */}
+          {nonTechnicalEvents.length > 0 && (
+            <>
+              <h2 className="event-category-title">Non-Technical Events</h2>
+              <div className="event-select-grid">
+                {nonTechnicalEvents.map(event => (
+                  <EventCard
+                    key={event.event_id}
+                    event={event}
+                    selectedIds={selectedIds}
+                    onToggle={toggleEvent}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* SUBMIT */}
           <div className="proceed-btn-wrapper">
-  
-
-  <button
-    className="proceed-btn"
-    disabled={selectedEvents.length === 0}
-    onClick={handleProceed}
-  >
-    Proceed to Receipt →
-  </button>
-</div>
-
+            <button
+              className="proceed-btn"
+              disabled={selectedIds.length === 0 || status.submitting}
+              onClick={handleProceed}
+            >
+              {status.submitting ? "Processing..." : "Proceed →"}
+            </button>
+          </div>
 
         </div>
       </section>
 
       <Footer />
     </>
+  );
+}
+
+// ================= EVENT CARD =================
+function EventCard({ event, selectedIds, onToggle }) {
+  const isSelected = selectedIds.includes(event.event_id);
+  const isMaxReached = selectedIds.length >= 3 && !isSelected;
+
+  return (
+    <label className={`event-select-card ${isSelected ? "selected" : ""}`}>
+      <input
+        type="checkbox"
+        checked={isSelected}
+        disabled={isMaxReached}
+        onChange={() => onToggle(event.event_id)}
+      />
+      <img
+        src={event.image}
+        alt={event.event_name}
+        onError={e => (e.target.src = "/placeholder.png")}
+      />
+      <h3>{event.event_name}</h3>
+      <p className="event-category">{event.category}</p>
+      <p className="event-fee">₹{event.price}</p>
+    </label>
   );
 }
 

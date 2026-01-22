@@ -1,24 +1,74 @@
-import { useEffect, useState } from "react";
-import API from "../api";
+// Marketing / Business / Design
+import ADARENA from "./assets/ADARENA.jpeg";
+import CASECATALYST from "./assets/CASECATALYST.png";
+import FOLDANDBUILD from "./assets/FOLDANDBUILD.png";
+import LOGOHUNT from "./assets/LOGOHUNT.jpeg";
 
-function Events() {
-  const [events, setEvents] = useState([]);
+// AI / Quiz / Puzzle
+import AIHUNTING from "./assets/AIHUNTING.jpeg";
+import AIPROMPTBATTLE from "./assets/AIPROMPTBATTLE.png";
+import AIQUIZ from "./assets/AIQUIZ.jpeg";
+import AISSHAPECIPHER from "./assets/AISSHAPECIPHER.png";
+import PUZZLEHUNT from "./assets/PUZZLEHUNT.png";
+import ESCAPEROOM from "./assets/ESCAPEROOM.png";
 
-  useEffect(() => {
-    API.get("/events").then(res => {
-      setEvents(res.data);
-    });
-  }, []);
+// Coding / Tech
+import BLINDCODE from "./assets/BLINDCODE.jpeg";
+import BREAKTHEBOT from "./assets/BREAKTHEBOT.png";
+import REVERSEDCODING from "./assets/REVERSECODING.png";
+import QUANTUMQUEST from "./assets/QUANTUMQUESTPHYSICS.jpeg";
 
-  return (
-    <div>
-      {events.map(e => (
-        <div key={e.event_id}>
-          {e.event_name} - ₹{e.price}
-        </div>
-      ))}
-    </div>
-  );
-}
+// Gaming / Fun
+import BGMI from "./assets/BGMI.jpeg";
+import FREEFIREPRO from "./assets/FREEFIREPRO.png";
+import LUDOKING from "./assets/LUDOKING.jpeg";
+import SPINMANIA from "./assets/SPIN MANIA.jpeg";
+import MYSTICMOVER from "./assets/MYSTICMOVER.jpeg";
 
-export default Events;
+// Robotics
+import DRONEDASH from "./assets/DRONEDASH.jpeg";
+import ROBOWAR from "./assets/ROBOWARPRO.png";
+import ROBORUSH from "./assets/ROBORUSH.jpeg";
+import ROBOFOOTBALL from "./assets/ROBOFOOTBALLCLASH.jpeg";
+
+// Other
+import BIZBRAIN from "./assets/BIZBRAINCHALLENGE.png";
+import BRAINBOOSTER from "./assets/BRAINBOOSTERMATH.jpeg";
+import BRIDGEBATTLE from "./assets/BRIDGEBATTLE.jpeg";
+import BULLVSBEAR from "./assets/BULLVSBEAR.jpeg";
+import CRICKETCARNIVAL from "./assets/CRICKETCARNIVAL.jpeg";
+import DREAMTODEAL from "./assets/DREAMTODEAL.png";
+import TREASUREHUNT from "./assets/TREASUREHUNT.jpeg";
+
+export const EVENT_IMAGES = {
+  "adarena": ADARENA,
+  "ai-hunting": AIHUNTING,
+  "ai-prompt-battle": AIPROMPTBATTLE,
+  "ai-quiz": AIQUIZ,
+  "ai-shape-cipher": AISSHAPECIPHER,
+  "bgmi": BGMI,
+  "biz-brain-challenge": BIZBRAIN,
+  "blind-code": BLINDCODE,
+  "brain-booster-math": BRAINBOOSTER,
+  "break-the-bot": BREAKTHEBOT,
+  "bridge-battle": BRIDGEBATTLE,
+  "bull-vs-bear": BULLVSBEAR,
+  "case-catalyst": CASECATALYST,
+  "cricket-carnival": CRICKETCARNIVAL,
+  "dream-to-deal": DREAMTODEAL,
+  "drone-dash": DRONEDASH,
+  "escape-room": ESCAPEROOM,
+  "fold-and-build": FOLDANDBUILD,
+  "free-fire-pro": FREEFIREPRO,
+  "logo-hunt": LOGOHUNT,
+  "ludo-king": LUDOKING,
+  "mystic-mover": MYSTICMOVER,
+  "puzzle-hunt": PUZZLEHUNT,
+  "quantum-quest-physics": QUANTUMQUEST,
+  "reverse-coding": REVERSEDCODING,
+  "robo-war": ROBOWAR,
+  "robo-rush": ROBORUSH,
+  "robo-football": ROBOFOOTBALL,
+  "spin-mania": SPINMANIA,
+  "treasure-hunt": TREASUREHUNT,
+};
