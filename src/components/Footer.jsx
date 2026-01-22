@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Footer() {
   return (
     <footer className="footer-section">
@@ -30,9 +32,9 @@ function Footer() {
           <p>Phone: +91 9XXXXXXXXX</p>
 
           <div className="footer-socials">
-            <a href="#">Instagram</a>
-            <a href="#">LinkedIn</a>
-            <a href="#">Twitter</a>
+            <Link href="#">Instagram</Link>
+            <Link href="#">LinkedIn</Link>
+            <Link href="#">Twitter</Link>
           </div>
         </div>
 
