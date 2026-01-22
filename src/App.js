@@ -27,6 +27,7 @@ function App() {
 <Route path="/events/:eventId" element={<EventDetails />} />
 <Route path="/register/events" element={<RegisterEvents />} />
 <Route path="/search-receipt" element={<SearchReceipt />} />
+<Route path="/receipt" element={<Receipt />} />
       </Routes>
     </BrowserRouter>
   );

@@ -53,19 +53,24 @@ function Receipt() {
 
           {/* Events */}
           <div className="receipt-section">
-            <h3>Selected Events</h3>
-            {data.events.map((event, index) => (
-              <div key={index} className="receipt-row">
-                <span>{event.name}</span>
-                <span>₹{event.fee}</span>
-              </div>
-            ))}
+  <h3>Selected Events</h3>
 
-            <div className="receipt-row total">
-              <strong>Total Amount</strong>
-              <strong>₹{data.totalAmount}</strong>
-            </div>
-          </div>
+  {(data.events || data.selectedEvents || []).length === 0 ? (
+    <p>No events found</p>
+  ) : (
+    (data.events || data.selectedEvents).map((event, index) => (
+      <div key={index} className="receipt-row">
+        <span>{event.name || event.title}</span>
+        <span>₹{event.fee || event.price || 0}</span>
+      </div>
+    ))
+  )}
+
+  <div className="receipt-row total">
+    <strong>Total Amount</strong>
+    <strong>₹{data.totalAmount}</strong>
+  </div>
+</div>
 
           {/* Payment Status */}
           <div className={`payment-status ${data.paymentStatus.toLowerCase()}`}>

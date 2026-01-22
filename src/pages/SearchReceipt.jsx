@@ -1,11 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 function SearchReceipt() {
   const [enrollment, setEnrollment] = useState("");
-  const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   function handleSearch(e) {
     e.preventDefault();
@@ -19,12 +21,13 @@ function SearchReceipt() {
 
     if (!found) {
       setError("No registration found for this enrollment number.");
-      setResult(null);
       return;
     }
 
-    setResult(found);
+    // ✅ Store full receipt data and redirect
+    localStorage.setItem("registration", JSON.stringify(found));
     setError("");
+    navigate("/receipt");
   }
 
   return (
@@ -49,38 +52,6 @@ function SearchReceipt() {
           </form>
 
           {error && <p className="error-text">{error}</p>}
-
-          {result && (
-            <div className="receipt-card">
-              <h2>Receipt</h2>
-
-              <p><strong>Registration ID:</strong> {result.regId}</p>
-              <p><strong>Name:</strong> {result.name}</p>
-              <p><strong>Enrollment:</strong> {result.enrollment}</p>
-              <p><strong>College:</strong> {result.college}</p>
-
-              <h3>Selected Events</h3>
-              <ul>
-                {result.events.map((event, index) => (
-                  <li key={index}>
-                    {event.name} – ₹{event.fee}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="total">
-                <strong>Total Amount:</strong> ₹{result.totalAmount}
-              </p>
-
-              <p className="status">
-                <strong>Status:</strong> {result.paymentStatus}
-              </p>
-
-              <button onClick={() => window.print()}>
-                Print Receipt
-              </button>
-            </div>
-          )}
 
         </div>
       </section>
