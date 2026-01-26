@@ -39,6 +39,7 @@ import BULLVSBEAR from "./assets/BULLVSBEAR.jpeg";
 import CRICKETCARNIVAL from "./assets/CRICKETCARNIVAL.jpeg";
 import DREAMTODEAL from "./assets/DREAMTODEAL.png";
 import TREASUREHUNT from "./assets/TREASUREHUNT.jpeg";
+import SQUIDGAME from "./assets/SQUIDGAMEINTECHWORLD.jpeg"
 
 export const EVENT_IMAGES = {
   "adarena": ADARENA,
@@ -71,4 +72,5 @@ export const EVENT_IMAGES = {
   "robo-football": ROBOFOOTBALL,
   "spin-mania": SPINMANIA,
   "treasure-hunt": TREASUREHUNT,
+  "squid-game": SQUIDGAME,
 };
